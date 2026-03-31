@@ -16,16 +16,17 @@ export default function FeedbackModal({ request, userRole, onClose, onSubmit }: 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
 
-  const counterpart = userRole === 'student' ? request.alumniId : request.studentId;
+  const isAlumni = userRole === 'alumni';
+  const counterpart = isAlumni ? request.studentId : request.alumniId;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (rating === 0) {
+    if (!isAlumni && rating === 0) {
       setError('Please select a rating');
       return;
     }
     if (comment.trim().length < 10) {
-      setError('Comment must be at least 10 characters');
+      setError(isAlumni ? 'Suggestion must be at least 10 characters' : 'Comment must be at least 10 characters');
       return;
     }
     setError('');
@@ -43,9 +44,13 @@ export default function FeedbackModal({ request, userRole, onClose, onSubmit }: 
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
           <div>
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Leave Feedback</h2>
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+              {isAlumni ? 'Give Suggestion' : 'Leave Feedback'}
+            </h2>
             <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
-              Rate your session with {counterpart?.name}
+              {isAlumni
+                ? `Share your suggestion for ${counterpart?.name}`
+                : `Rate your session with ${counterpart?.name}`}
             </p>
           </div>
           <button
@@ -65,31 +70,35 @@ export default function FeedbackModal({ request, userRole, onClose, onSubmit }: 
             </p>
           </div>
 
-          {/* Star Rating */}
-          <div>
-            <label className="label">Your Rating *</label>
-            <div className="mt-2">
-              <StarRating rating={rating} size="lg" interactive onChange={setRating} />
+          {/* Star Rating - only for students */}
+          {!isAlumni && (
+            <div>
+              <label className="label">Your Rating *</label>
+              <div className="mt-2">
+                <StarRating rating={rating} size="lg" interactive onChange={setRating} />
+              </div>
+              {rating > 0 && (
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                  {rating === 1 && 'Poor'}
+                  {rating === 2 && 'Fair'}
+                  {rating === 3 && 'Good'}
+                  {rating === 4 && 'Very Good'}
+                  {rating === 5 && 'Excellent'}
+                </p>
+              )}
             </div>
-            {rating > 0 && (
-              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                {rating === 1 && 'Poor'}
-                {rating === 2 && 'Fair'}
-                {rating === 3 && 'Good'}
-                {rating === 4 && 'Very Good'}
-                {rating === 5 && 'Excellent'}
-              </p>
-            )}
-          </div>
+          )}
 
-          {/* Comment */}
+          {/* Comment / Suggestion */}
           <div>
-            <label className="label">Comment *</label>
+            <label className="label">{isAlumni ? 'Your Suggestion *' : 'Comment *'}</label>
             <textarea
               value={comment}
               onChange={(e) => setComment(e.target.value)}
               rows={4}
-              placeholder="Share your experience from this mentorship session..."
+              placeholder={isAlumni
+                ? 'Share advice, resources, or next steps for the student...'
+                : 'Share your experience from this mentorship session...'}
               className="input-field resize-none"
             />
             <p className="text-xs text-gray-400 mt-1">{comment.length} characters (min 10)</p>
@@ -120,7 +129,7 @@ export default function FeedbackModal({ request, userRole, onClose, onSubmit }: 
                   Submitting...
                 </>
               ) : (
-                'Submit Feedback'
+                isAlumni ? 'Send Suggestion' : 'Submit Feedback'
               )}
             </button>
           </div>

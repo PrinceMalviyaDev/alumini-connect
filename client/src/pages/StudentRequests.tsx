@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { format } from 'date-fns';
-import { Clock, Calendar, ExternalLink, X, MessageSquare, CheckCircle } from 'lucide-react';
+import { Clock, Calendar, ExternalLink, X, MessageSquare, CheckCircle, Lightbulb } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { MentorshipRequest } from '../types';
 import FeedbackModal from '../components/FeedbackModal';
@@ -233,6 +233,22 @@ export default function StudentRequests() {
                       </span>
                     )}
                   </div>
+
+                  {/* Alumni suggestion card */}
+                  {request.status === 'completed' && request.alumniFeedback && (
+                    <div className="mt-4 p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-100 dark:border-amber-800 rounded-xl">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Lightbulb className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+                        <span className="text-sm font-semibold text-amber-700 dark:text-amber-300">Mentor's Suggestion</span>
+                      </div>
+                      <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed italic">
+                        "{request.alumniFeedback.comment}"
+                      </p>
+                      <p className="text-xs text-gray-400 dark:text-gray-500 mt-2">
+                        — {request.alumniId.name}
+                      </p>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

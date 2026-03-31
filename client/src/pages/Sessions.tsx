@@ -14,6 +14,7 @@ export default function Sessions() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'upcoming' | 'past'>('upcoming');
   const [feedbackRequest, setFeedbackRequest] = useState<MentorshipRequest | null>(null);
+  const [suggestionRequest, setSuggestionRequest] = useState<MentorshipRequest | null>(null);
 
   const fetchSessions = async () => {
     setLoading(true);
@@ -70,6 +71,23 @@ export default function Sessions() {
     } catch (error: unknown) {
       const err = error as { response?: { data?: { message?: string } } };
       toast.error(err.response?.data?.message || 'Failed to submit feedback');
+    }
+  };
+
+  const handleSuggestion = async (_rating: number, comment: string) => {
+    if (!suggestionRequest) return;
+    try {
+      await api.post(`/feedback/${suggestionRequest._id}`, { comment });
+      setRequests((prev) =>
+        prev.map((r) =>
+          r._id === suggestionRequest._id ? { ...r, alumniFeedbackDone: true } : r
+        )
+      );
+      toast.success('Suggestion sent!');
+      setSuggestionRequest(null);
+    } catch (error: unknown) {
+      const err = error as { response?: { data?: { message?: string } } };
+      toast.error(err.response?.data?.message || 'Failed to send suggestion');
     }
   };
 
@@ -134,6 +152,7 @@ export default function Sessions() {
                 userRole={user?.role || 'student'}
                 onComplete={user?.role === 'alumni' ? () => handleComplete(request._id) : undefined}
                 onFeedback={() => setFeedbackRequest(request)}
+                onSuggestion={() => setSuggestionRequest(request)}
               />
             ))}
           </div>
@@ -153,6 +172,7 @@ export default function Sessions() {
                 request={request}
                 userRole={user?.role || 'student'}
                 onFeedback={() => setFeedbackRequest(request)}
+                onSuggestion={() => setSuggestionRequest(request)}
               />
             ))}
           </div>
@@ -166,6 +186,16 @@ export default function Sessions() {
           userRole={user.role}
           onClose={() => setFeedbackRequest(null)}
           onSubmit={handleFeedback}
+        />
+      )}
+
+      {/* Suggestion Modal */}
+      {suggestionRequest && user && (
+        <FeedbackModal
+          request={suggestionRequest}
+          userRole="alumni"
+          onClose={() => setSuggestionRequest(null)}
+          onSubmit={handleSuggestion}
         />
       )}
     </div>

@@ -16,7 +16,7 @@ const FeedbackSchema = new Schema<IFeedback>(
     requestId: { type: Schema.Types.ObjectId, ref: 'MentorshipRequest', required: true },
     fromUserId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
     toUserId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
-    rating: { type: Number, required: true, min: 1, max: 5 },
+    rating: { type: Number, min: 1, max: 5, default: null },
     comment: { type: String, default: '' },
     type: {
       type: String,

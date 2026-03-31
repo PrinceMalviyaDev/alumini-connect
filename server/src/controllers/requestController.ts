@@ -69,12 +69,23 @@ export async function getStudentRequests(req: Request, res: Response): Promise<v
     const profiles = await AlumniProfile.find({ userId: { $in: alumniIds } }).lean();
     const profileMap = new Map(profiles.map((p) => [p.userId.toString(), p]));
 
+    // Fetch alumni suggestions for completed requests
+    const completedIds = requests.filter((r) => r.status === 'completed').map((r) => r._id);
+    const suggestions = completedIds.length > 0
+      ? await (await import('@/models/Feedback')).Feedback.find({
+          requestId: { $in: completedIds },
+          type: 'alumni-to-student',
+        }).lean()
+      : [];
+    const suggestionMap = new Map(suggestions.map((s) => [s.requestId.toString(), s]));
+
     const result = requests.map((request) => {
       const alumniUser = request.alumniId as unknown as Record<string, unknown>;
       const alumniIdStr = (alumniUser._id as string)?.toString() || request.alumniId.toString();
       return {
         ...request,
         alumniProfile: profileMap.get(alumniIdStr) || null,
+        alumniFeedback: suggestionMap.get(request._id.toString()) || null,
       };
     });
 

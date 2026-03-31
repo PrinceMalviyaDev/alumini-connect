@@ -62,6 +62,10 @@ export interface MentorshipRequest {
     comment: string;
     createdAt: string;
   } | null;
+  alumniFeedback?: {
+    comment: string;
+    createdAt: string;
+  } | null;
 }
 
 export interface Feedback {

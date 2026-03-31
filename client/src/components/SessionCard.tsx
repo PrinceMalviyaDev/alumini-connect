@@ -1,4 +1,4 @@
-import { ExternalLink, CheckCircle, MessageSquare, Calendar, Star } from 'lucide-react';
+import { ExternalLink, CheckCircle, MessageSquare, Calendar, Star, Lightbulb } from 'lucide-react';
 import { format } from 'date-fns';
 import { MentorshipRequest } from '../types';
 import StarRating from './StarRating';
@@ -17,12 +17,14 @@ interface SessionCardProps {
   userRole: string;
   onComplete?: () => void;
   onFeedback?: () => void;
+  onSuggestion?: () => void;
 }
 
-export default function SessionCard({ request, userRole, onComplete, onFeedback }: SessionCardProps) {
+export default function SessionCard({ request, userRole, onComplete, onFeedback, onSuggestion }: SessionCardProps) {
   const counterpart = userRole === 'alumni' ? request.studentId : request.alumniId;
   const canComplete = request.status === 'accepted' && userRole === 'alumni';
   const canLeaveFeedback = request.status === 'completed' && userRole === 'student' && !request.studentFeedbackDone;
+  const canGiveSuggestion = request.status === 'completed' && userRole === 'alumni' && !request.alumniFeedbackDone;
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
@@ -91,6 +93,32 @@ export default function SessionCard({ request, userRole, onComplete, onFeedback 
             </div>
           )}
 
+          {/* Student: show alumni suggestion card */}
+          {userRole === 'student' && request.status === 'completed' && request.alumniFeedback && (
+            <div className="mt-4 p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-100 dark:border-amber-800 rounded-xl">
+              <div className="flex items-center gap-2 mb-2">
+                <Lightbulb className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+                <span className="text-sm font-semibold text-amber-700 dark:text-amber-300">Mentor's Suggestion</span>
+              </div>
+              <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed italic">
+                "{request.alumniFeedback.comment}"
+              </p>
+              <p className="text-xs text-gray-400 dark:text-gray-500 mt-2">
+                — {counterpart?.name}
+              </p>
+            </div>
+          )}
+
+          {/* Alumni: suggestion sent indicator */}
+          {userRole === 'alumni' && request.alumniFeedbackDone && request.status === 'completed' && (
+            <div className="mt-3">
+              <span className="inline-flex items-center gap-1.5 text-sm text-amber-700 dark:text-amber-400">
+                <CheckCircle className="w-4 h-4" />
+                Suggestion sent
+              </span>
+            </div>
+          )}
+
           {/* Actions */}
           <div className="flex flex-wrap gap-2 mt-4">
             {request.sessionLink && request.status === 'accepted' && (
@@ -122,6 +150,16 @@ export default function SessionCard({ request, userRole, onComplete, onFeedback 
               >
                 <MessageSquare className="w-4 h-4" />
                 Leave Feedback
+              </button>
+            )}
+
+            {canGiveSuggestion && onSuggestion && (
+              <button
+                onClick={onSuggestion}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-amber-700 dark:text-amber-300 bg-amber-100 dark:bg-amber-900/30 hover:bg-amber-200 dark:hover:bg-amber-900/50 rounded-lg transition-colors"
+              >
+                <Lightbulb className="w-4 h-4" />
+                Give Suggestion
               </button>
             )}
           </div>
