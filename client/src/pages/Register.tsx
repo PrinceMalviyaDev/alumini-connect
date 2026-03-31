@@ -80,6 +80,13 @@ export default function Register() {
   const validateStep3 = () => {
     const errs: Record<string, string> = {};
     if (!college.trim() || college.trim().length < 2) errs.college = 'College / university name is required';
+    if (selectedRole === 'alumni') {
+      if (!graduationYear) {
+        errs.graduationYear = 'Graduation year is required for alumni';
+      } else if (parseInt(graduationYear) > currentYear) {
+        errs.graduationYear = 'Graduation year must not be in the future. Only graduated users can register as alumni.';
+      }
+    }
     setStep3Errors(errs);
     return Object.keys(errs).length === 0;
   };
@@ -276,7 +283,7 @@ export default function Register() {
 
               {selectedRole === 'alumni' && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Graduation Year</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Graduation Year *</label>
                   <input
                     type="number"
                     value={graduationYear}
@@ -286,6 +293,7 @@ export default function Register() {
                     max={currentYear}
                     className={inputClass()}
                   />
+                  {step3Errors.graduationYear && <p className="flex items-center gap-1 text-red-500 text-xs mt-1"><AlertCircle className="w-3 h-3" /> {step3Errors.graduationYear}</p>}
                 </div>
               )}
 

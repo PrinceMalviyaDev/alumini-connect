@@ -25,6 +25,18 @@ export async function register(req: Request, res: Response): Promise<void> {
       return;
     }
 
+    if (role === 'alumni') {
+      if (!graduationYear) {
+        res.status(400).json({ success: false, message: 'Graduation year is required for alumni' });
+        return;
+      }
+      const currentYear = new Date().getFullYear();
+      if (graduationYear > currentYear) {
+        res.status(400).json({ success: false, message: 'Graduation year must not be in the future. Only graduated users can register as alumni.' });
+        return;
+      }
+    }
+
     const existing = await User.findOne({ email: email.toLowerCase() });
     if (existing) {
       res.status(409).json({ success: false, message: 'Email already registered' });
