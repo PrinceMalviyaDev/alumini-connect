@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import mongoose from 'mongoose';
 import { Regret } from '@/models/Regret';
 
 export async function createRegret(req: Request, res: Response): Promise<void> {
@@ -37,6 +38,7 @@ export async function getRegrets(req: Request, res: Response): Promise<void> {
     const total = await Regret.countDocuments();
     const regrets = await Regret.find()
       .populate('authorId', 'name avatar')
+      .populate('comments.userId', 'name avatar')
       .sort(sortOption)
       .skip(skip)
       .limit(limitNum)
@@ -74,7 +76,7 @@ export async function likeRegret(req: Request, res: Response): Promise<void> {
       regret.likes = Math.max(0, regret.likes - 1);
     } else {
       // Add like, remove dislike if exists
-      regret.likedBy.push(new (await import('mongoose')).Types.ObjectId(userId));
+      regret.likedBy.push(new mongoose.Types.ObjectId(userId));
       regret.likes += 1;
       if (alreadyDisliked) {
         regret.dislikedBy = regret.dislikedBy.filter((uid) => uid.toString() !== userId);
@@ -109,7 +111,7 @@ export async function dislikeRegret(req: Request, res: Response): Promise<void> 
       regret.dislikes = Math.max(0, regret.dislikes - 1);
     } else {
       // Add dislike, remove like if exists
-      regret.dislikedBy.push(new (await import('mongoose')).Types.ObjectId(userId));
+      regret.dislikedBy.push(new mongoose.Types.ObjectId(userId));
       regret.dislikes += 1;
       if (alreadyLiked) {
         regret.likedBy = regret.likedBy.filter((uid) => uid.toString() !== userId);
@@ -119,6 +121,38 @@ export async function dislikeRegret(req: Request, res: Response): Promise<void> 
 
     await regret.save();
     res.json({ success: true, data: { likes: regret.likes, dislikes: regret.dislikes, likedBy: regret.likedBy, dislikedBy: regret.dislikedBy } });
+  } catch (error) {
+    res.status(500).json({ success: false, message: (error as Error).message });
+  }
+}
+
+export async function addComment(req: Request, res: Response): Promise<void> {
+  try {
+    const { id } = req.params;
+    const userId = req.user!.userId;
+    const { text } = req.body;
+
+    if (!text || text.trim().length < 2) {
+      res.status(400).json({ success: false, message: 'Comment must be at least 2 characters' });
+      return;
+    }
+
+    const regret = await Regret.findById(id);
+    if (!regret) {
+      res.status(404).json({ success: false, message: 'Regret not found' });
+      return;
+    }
+
+    await Regret.findByIdAndUpdate(id, {
+      $push: { comments: { userId: new mongoose.Types.ObjectId(userId), text: text.trim() } },
+    });
+
+    const updated = await Regret.findById(id)
+      .populate('authorId', 'name avatar')
+      .populate('comments.userId', 'name avatar')
+      .lean();
+
+    res.status(201).json({ success: true, data: { comments: updated!.comments } });
   } catch (error) {
     res.status(500).json({ success: false, message: (error as Error).message });
   }

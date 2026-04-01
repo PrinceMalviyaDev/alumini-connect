@@ -1,5 +1,12 @@
 import mongoose, { Document, Schema } from 'mongoose';
 
+export interface IRegretComment {
+  _id: mongoose.Types.ObjectId;
+  userId: mongoose.Types.ObjectId;
+  text: string;
+  createdAt: Date;
+}
+
 export interface IRegret extends Document {
   _id: mongoose.Types.ObjectId;
   authorId: mongoose.Types.ObjectId;
@@ -9,8 +16,17 @@ export interface IRegret extends Document {
   dislikes: number;
   likedBy: mongoose.Types.ObjectId[];
   dislikedBy: mongoose.Types.ObjectId[];
+  comments: IRegretComment[];
   createdAt: Date;
 }
+
+const RegretCommentSchema = new Schema<IRegretComment>(
+  {
+    userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+    text: { type: String, required: true, maxlength: 500 },
+  },
+  { timestamps: true }
+);
 
 const RegretSchema = new Schema<IRegret>(
   {
@@ -21,6 +37,7 @@ const RegretSchema = new Schema<IRegret>(
     dislikes: { type: Number, default: 0 },
     likedBy: [{ type: Schema.Types.ObjectId, ref: 'User' }],
     dislikedBy: [{ type: Schema.Types.ObjectId, ref: 'User' }],
+    comments: { type: [RegretCommentSchema], default: [] },
   },
   { timestamps: true }
 );

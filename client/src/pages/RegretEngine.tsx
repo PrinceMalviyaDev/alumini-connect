@@ -1,10 +1,17 @@
 import { useState, useEffect } from 'react';
-import { ThumbsUp, ThumbsDown, Plus, X, AlertTriangle, TrendingUp, Clock } from 'lucide-react';
+import { ThumbsUp, ThumbsDown, Plus, X, AlertTriangle, TrendingUp, Clock, MessageCircle, Send } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import toast from 'react-hot-toast';
 import { useAuthStore } from '../store/authStore';
 import Avatar from '../components/Avatar';
 import api from '../lib/axios';
+
+interface RegretComment {
+  _id: string;
+  userId: { _id: string; name: string; avatar: string };
+  text: string;
+  createdAt: string;
+}
 
 interface Regret {
   _id: string;
@@ -15,6 +22,7 @@ interface Regret {
   dislikes: number;
   likedBy: string[];
   dislikedBy: string[];
+  comments: RegretComment[];
   createdAt: string;
 }
 
@@ -27,6 +35,11 @@ export default function RegretEngine() {
   const [description, setDescription] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [sort, setSort] = useState<'latest' | 'popular'>('latest');
+  const [commentText, setCommentText] = useState<Record<string, string>>({});
+  const [expandedComments, setExpandedComments] = useState<Record<string, boolean>>({});
+  const [commentSubmitting, setCommentSubmitting] = useState<string | null>(null);
+
+  const isAlumni = user?.role === 'alumni';
 
   const fetchRegrets = async () => {
     setLoading(true);
@@ -53,7 +66,7 @@ export default function RegretEngine() {
     setSubmitting(true);
     try {
       const res = await api.post('/regrets', { title, description });
-      setRegrets((prev) => [res.data.data.regret, ...prev]);
+      setRegrets((prev) => [{ ...res.data.data.regret, comments: [] }, ...prev]);
       setTitle('');
       setDescription('');
       setShowForm(false);
@@ -99,7 +112,27 @@ export default function RegretEngine() {
     }
   };
 
-  const isAlumni = user?.role === 'alumni';
+  const handleComment = async (regretId: string) => {
+    const text = commentText[regretId]?.trim();
+    if (!text) return;
+    setCommentSubmitting(regretId);
+    try {
+      const res = await api.post(`/regrets/${regretId}/comment`, { text });
+      setRegrets((prev) =>
+        prev.map((r) => r._id === regretId ? { ...r, comments: res.data.data.comments } : r)
+      );
+      setCommentText((prev) => ({ ...prev, [regretId]: '' }));
+    } catch (error: unknown) {
+      const err = error as { response?: { data?: { message?: string } } };
+      toast.error(err.response?.data?.message || 'Failed to add comment');
+    } finally {
+      setCommentSubmitting(null);
+    }
+  };
+
+  const toggleComments = (id: string) => {
+    setExpandedComments((prev) => ({ ...prev, [id]: !prev[id] }));
+  };
 
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -118,7 +151,6 @@ export default function RegretEngine() {
 
       {/* Controls */}
       <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
-        {/* Sort */}
         <div className="flex gap-1 bg-gray-100 dark:bg-gray-800 p-1 rounded-xl">
           <button
             onClick={() => setSort('latest')}
@@ -142,7 +174,6 @@ export default function RegretEngine() {
           </button>
         </div>
 
-        {/* Share button - alumni only */}
         {isAlumni && (
           <button
             onClick={() => setShowForm(!showForm)}
@@ -229,6 +260,8 @@ export default function RegretEngine() {
             const hasLiked = regret.likedBy?.includes(user?._id || '');
             const hasDisliked = regret.dislikedBy?.includes(user?._id || '');
             const isOwner = regret.authorId._id === user?._id;
+            const commentsExpanded = expandedComments[regret._id];
+            const commentCount = regret.comments?.length || 0;
 
             return (
               <div key={regret._id} className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
@@ -257,31 +290,112 @@ export default function RegretEngine() {
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">{regret.title}</h3>
                 <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed whitespace-pre-line">{regret.description}</p>
 
-                {/* Like / Dislike */}
+                {/* Like / Dislike / Comments toggle */}
                 <div className="flex items-center gap-3 mt-4 pt-4 border-t border-gray-100 dark:border-gray-700">
+                  {isAlumni ? (
+                    <>
+                      <button
+                        onClick={() => handleLike(regret._id)}
+                        className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                          hasLiked
+                            ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
+                            : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-green-50 dark:hover:bg-green-900/20 hover:text-green-600'
+                        }`}
+                      >
+                        <ThumbsUp className="w-4 h-4" />
+                        <span>{regret.likes}</span>
+                      </button>
+                      <button
+                        onClick={() => handleDislike(regret._id)}
+                        className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                          hasDisliked
+                            ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400'
+                            : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600'
+                        }`}
+                      >
+                        <ThumbsDown className="w-4 h-4" />
+                        <span>{regret.dislikes}</span>
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400">
+                        <ThumbsUp className="w-4 h-4" />
+                        <span>{regret.likes}</span>
+                      </span>
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400">
+                        <ThumbsDown className="w-4 h-4" />
+                        <span>{regret.dislikes}</span>
+                      </span>
+                    </>
+                  )}
+
                   <button
-                    onClick={() => handleLike(regret._id)}
-                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                      hasLiked
-                        ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
-                        : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-green-50 dark:hover:bg-green-900/20 hover:text-green-600'
+                    onClick={() => toggleComments(regret._id)}
+                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ml-auto ${
+                      commentsExpanded
+                        ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400'
+                        : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-600'
                     }`}
                   >
-                    <ThumbsUp className="w-4 h-4" />
-                    <span>{regret.likes}</span>
-                  </button>
-                  <button
-                    onClick={() => handleDislike(regret._id)}
-                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                      hasDisliked
-                        ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400'
-                        : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600'
-                    }`}
-                  >
-                    <ThumbsDown className="w-4 h-4" />
-                    <span>{regret.dislikes}</span>
+                    <MessageCircle className="w-4 h-4" />
+                    <span>{commentCount}</span>
                   </button>
                 </div>
+
+                {/* Comments Section */}
+                {commentsExpanded && (
+                  <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700 space-y-3">
+                    {/* Existing Comments */}
+                    {regret.comments?.length > 0 ? (
+                      regret.comments.map((c) => (
+                        <div key={c._id} className="flex gap-2.5">
+                          <Avatar name={c.userId.name} size="xs" />
+                          <div className="flex-1 bg-gray-50 dark:bg-gray-700/50 rounded-lg px-3 py-2">
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs font-semibold text-gray-900 dark:text-white">{c.userId.name}</span>
+                              <span className="text-xs text-gray-400">
+                                {formatDistanceToNow(new Date(c.createdAt), { addSuffix: true })}
+                              </span>
+                            </div>
+                            <p className="text-sm text-gray-600 dark:text-gray-400 mt-0.5">{c.text}</p>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <p className="text-sm text-gray-400 dark:text-gray-500 text-center py-2">No comments yet</p>
+                    )}
+
+                    {/* Add Comment - alumni only */}
+                    {isAlumni && (
+                      <div className="flex gap-2 pt-1">
+                        <Avatar name={user?.name || ''} size="xs" />
+                        <div className="flex-1 flex gap-2">
+                          <input
+                            type="text"
+                            value={commentText[regret._id] || ''}
+                            onChange={(e) => setCommentText((prev) => ({ ...prev, [regret._id]: e.target.value }))}
+                            placeholder="Add a comment..."
+                            maxLength={500}
+                            onKeyDown={(e) => { if (e.key === 'Enter') handleComment(regret._id); }}
+                            className="flex-1 px-3 py-1.5 rounded-lg border border-gray-300 dark:border-gray-600 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-300 dark:focus:ring-blue-700 transition-colors"
+                          />
+                          <button
+                            onClick={() => handleComment(regret._id)}
+                            disabled={commentSubmitting === regret._id || !commentText[regret._id]?.trim()}
+                            className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-40 text-white rounded-lg transition-colors"
+                          >
+                            {commentSubmitting === regret._id ? (
+                              <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                            ) : (
+                              <Send className="w-4 h-4" />
+                            )}
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             );
           })}
