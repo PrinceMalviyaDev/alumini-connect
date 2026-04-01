@@ -26,6 +26,7 @@ function AcceptModal({ request, onClose, onAccept }: AcceptModalProps) {
 
   const handleAccept = async () => {
     if (!selectedSlot) { toast.error('Please select a time slot'); return; }
+    if (!sessionLink.trim()) { toast.error('Meeting link is required'); return; }
     setIsLoading(true);
     try {
       await onAccept(selectedSlot, sessionLink);
@@ -66,14 +67,16 @@ function AcceptModal({ request, onClose, onAccept }: AcceptModalProps) {
           )}
         </div>
         <div className="mb-4">
-          <label className="label">Session Link (optional)</label>
+          <label className="label">Meeting Link *</label>
           <input
             type="url"
             value={sessionLink}
             onChange={(e) => setSessionLink(e.target.value)}
-            placeholder="https://zoom.us/j/... or Google Meet link"
+            placeholder="https://meet.google.com/... or https://zoom.us/j/..."
             className="input-field"
+            required
           />
+          <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">Paste your Google Meet, Zoom, or Teams link</p>
         </div>
         <div className="flex gap-3">
           <button onClick={onClose} className="flex-1 btn-secondary" disabled={isLoading}>Cancel</button>

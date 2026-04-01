@@ -113,7 +113,7 @@
 | `message` | String | required |
 | `proposedSlots` | [Date] | student-proposed times |
 | `scheduledAt` | Date | set on accept |
-| `sessionLink` | String | auto-generated Jitsi Meet URL |
+| `sessionLink` | String | meeting link provided by alumni (Google Meet, Zoom, etc.) |
 | `sessionNotes` | String | optional |
 | `studentFeedbackDone` | Boolean | default: false |
 | `alumniFeedbackDone` | Boolean | default: false |
@@ -213,7 +213,7 @@ Notifications are persisted to DB and delivered in real-time via Socket.io.
 | POST | `/` | Bearer + student | Create mentorship request |
 | GET | `/sent` | Bearer + student | Student's requests (with alumni profiles + alumni feedback) |
 | GET | `/received` | Bearer + alumni | Alumni's requests (with student profiles + student feedback) |
-| PUT | `/:id/accept` | Bearer + alumni | Accept request, set schedule + Jitsi link |
+| PUT | `/:id/accept` | Bearer + alumni | Accept request, set schedule + meeting link (required) |
 | PUT | `/:id/decline` | Bearer + alumni | Decline request |
 | PUT | `/:id/complete` | Bearer + alumni | Mark session completed |
 | PUT | `/:id/notes` | Bearer + alumni | Add session notes |
@@ -373,7 +373,7 @@ Client: socket.on('notification:new', handler)
 Register (role: student) → Onboarding (major, interests, goals)
   → Browse Alumni Directory (filter/search)
   → View Alumni Profile → Send Mentorship Request
-  → Request Accepted → Join Session (Jitsi Meet)
+  → Request Accepted → Join Session (alumni-provided meeting link)
   → Session Completed → Leave Feedback (1-5 stars + comment)
   → View Mentor's Suggestion (if provided)
   → Browse Regret Engine (read-only, learn from alumni regrets)
@@ -383,7 +383,7 @@ Register (role: student) → Onboarding (major, interests, goals)
 ```
 Register (role: alumni, graduationYear <= now) → Onboarding (company, skills, availability)
   → Dashboard: View Pending Requests → Accept/Decline
-  → Session Scheduled → Conduct Session (Jitsi Meet)
+  → Session Scheduled → Conduct Session (via meeting link)
   → Mark Session Complete → Give Suggestion to Student
   → View Student's Feedback
   → Regret Engine: Share Regrets, Like/Dislike, Comment
@@ -399,13 +399,9 @@ Login → Admin Dashboard
 
 ---
 
-## 9. Session Link Generation
+## 9. Session Link
 
-When an alumni accepts a mentorship request, a Jitsi Meet session link is auto-generated:
-```
-https://meet.jit.si/alumniconnect-{requestId}
-```
-No account or setup required — both parties click the link to join.
+When an alumni accepts a mentorship request, they must provide a meeting link (Google Meet, Zoom, Microsoft Teams, etc.). This link is stored with the session and shown to the student. Both parties use the "Join Session" button to open the link.
 
 ---
 

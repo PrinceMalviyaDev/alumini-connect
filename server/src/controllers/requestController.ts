@@ -165,7 +165,12 @@ export async function acceptRequest(req: Request, res: Response): Promise<void> 
       ? new Date(scheduledAtStr)
       : mentorshipRequest.proposedSlots[0];
 
-    const sessionLink = providedLink?.trim() || `https://meet.jit.si/alumniconnect-${id}`;
+    if (!providedLink?.trim()) {
+      res.status(400).json({ success: false, message: 'Meeting link is required (Google Meet, Zoom, etc.)' });
+      return;
+    }
+
+    const sessionLink = providedLink.trim();
 
     mentorshipRequest.status = 'accepted';
     mentorshipRequest.scheduledAt = scheduledAt;
