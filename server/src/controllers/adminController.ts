@@ -55,17 +55,27 @@ export async function getStats(req: Request, res: Response): Promise<void> {
       },
     }));
 
+    const declinedRequests = await MentorshipRequest.countDocuments({ status: 'declined' });
+    const cancelledRequests = await MentorshipRequest.countDocuments({ status: 'cancelled' });
+
+    const requestsByStatus = [
+      { status: 'pending', count: pendingRequests },
+      { status: 'accepted', count: acceptedRequests },
+      { status: 'completed', count: completedRequests },
+      { status: 'declined', count: declinedRequests },
+      { status: 'cancelled', count: cancelledRequests },
+    ].filter((r) => r.count > 0);
+
     res.json({
       success: true,
       data: {
         totalStudents,
         totalAlumni,
         totalRequests,
-        pendingRequests,
-        acceptedRequests,
-        completedRequests,
+        completedSessions: completedRequests,
         sessionsThisWeek,
         averageRating,
+        requestsByStatus,
         topMentors,
       },
     });
@@ -117,7 +127,7 @@ export async function getUsers(req: Request, res: Response): Promise<void> {
           total,
           page: pageNum,
           limit: limitNum,
-          totalPages: Math.ceil(total / limitNum),
+          pages: Math.ceil(total / limitNum),
         },
       },
     });
@@ -126,20 +136,18 @@ export async function getUsers(req: Request, res: Response): Promise<void> {
   }
 }
 
-export async function deactivateUser(req: Request, res: Response): Promise<void> {
+export async function toggleUserActive(req: Request, res: Response): Promise<void> {
   try {
     const { id } = req.params;
 
-    const user = await User.findByIdAndUpdate(
-      id,
-      { $set: { isActive: false } },
-      { new: true }
-    ).select('-passwordHash');
-
+    const user = await User.findById(id).select('-passwordHash');
     if (!user) {
       res.status(404).json({ success: false, message: 'User not found' });
       return;
     }
+
+    user.isActive = !user.isActive;
+    await user.save();
 
     res.json({ success: true, data: { user } });
   } catch (error) {

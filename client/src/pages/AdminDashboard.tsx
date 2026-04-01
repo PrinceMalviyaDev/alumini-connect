@@ -264,9 +264,9 @@ export default function AdminDashboard() {
             {usersData && usersData.pagination.pages > 1 && (
               <div className="flex items-center justify-between px-6 py-4 border-t border-gray-100 dark:border-gray-700">
                 <p className="text-sm text-gray-500 dark:text-gray-400">
-                  Page {usersData.pagination.page} of {usersData.pagination.pages}
+                  Showing {((usersData.pagination.page - 1) * usersData.pagination.limit) + 1}–{Math.min(usersData.pagination.page * usersData.pagination.limit, usersData.pagination.total)} of {usersData.pagination.total}
                 </p>
-                <div className="flex gap-2">
+                <div className="flex items-center gap-1">
                   <button
                     onClick={() => setUsersPage((p) => Math.max(1, p - 1))}
                     disabled={usersData.pagination.page === 1}
@@ -274,6 +274,19 @@ export default function AdminDashboard() {
                   >
                     <ChevronLeft className="w-4 h-4" />
                   </button>
+                  {Array.from({ length: usersData.pagination.pages }, (_, i) => i + 1).map((page) => (
+                    <button
+                      key={page}
+                      onClick={() => setUsersPage(page)}
+                      className={`w-9 h-9 rounded-lg text-sm font-medium transition-colors ${
+                        page === usersData.pagination.page
+                          ? 'bg-primary-600 text-white'
+                          : 'border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'
+                      }`}
+                    >
+                      {page}
+                    </button>
+                  ))}
                   <button
                     onClick={() => setUsersPage((p) => Math.min(usersData.pagination.pages, p + 1))}
                     disabled={usersData.pagination.page === usersData.pagination.pages}
