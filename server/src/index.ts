@@ -18,6 +18,7 @@ import feedbackRoutes from '@/routes/feedback';
 import notificationRoutes from '@/routes/notifications';
 import leaderboardRoutes from '@/routes/leaderboard';
 import adminRoutes from '@/routes/admin';
+import regretRoutes from '@/routes/regrets';
 
 const app = express();
 const server = http.createServer(app);
@@ -54,6 +55,7 @@ app.use('/api/feedback', feedbackRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/leaderboard', leaderboardRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/regrets', regretRoutes);
 
 app.get('/api/health', (_req, res) => {
   res.json({ success: true, data: { status: 'ok', timestamp: new Date().toISOString() } });

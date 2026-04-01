@@ -21,6 +21,7 @@ import Leaderboard from './pages/Leaderboard';
 import Profile from './pages/Profile';
 import NotificationsPage from './pages/NotificationsPage';
 import AdminDashboard from './pages/AdminDashboard';
+import RegretEngine from './pages/RegretEngine';
 import NotFound from './pages/NotFound';
 
 interface ProtectedRouteProps {
@@ -245,6 +246,16 @@ export default function App() {
           <ProtectedRoute>
             <AuthenticatedLayout>
               <NotificationsPage />
+            </AuthenticatedLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/regret-engine"
+        element={
+          <ProtectedRoute allowedRoles={['student', 'alumni']}>
+            <AuthenticatedLayout>
+              <RegretEngine />
             </AuthenticatedLayout>
           </ProtectedRoute>
         }

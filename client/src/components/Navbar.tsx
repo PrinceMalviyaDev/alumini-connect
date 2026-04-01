@@ -14,6 +14,7 @@ import {
   BookOpen,
   Trophy,
   Settings,
+  AlertTriangle,
 } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import { disconnectSocket } from '../lib/socket';
@@ -66,12 +67,14 @@ export default function Navbar() {
           { to: '/directory', label: 'Directory', icon: <Users className="w-4 h-4" /> },
           { to: '/requests', label: 'My Requests', icon: <BookOpen className="w-4 h-4" /> },
           { to: '/sessions', label: 'Sessions', icon: <Settings className="w-4 h-4" /> },
+          { to: '/regret-engine', label: 'Regret Engine', icon: <AlertTriangle className="w-4 h-4" /> },
           { to: '/leaderboard', label: 'Leaderboard', icon: <Trophy className="w-4 h-4" /> },
         ];
       case 'alumni':
         return [
           { to: '/dashboard', label: 'Dashboard', icon: <LayoutDashboard className="w-4 h-4" /> },
           { to: '/sessions', label: 'Sessions', icon: <Settings className="w-4 h-4" /> },
+          { to: '/regret-engine', label: 'Regret Engine', icon: <AlertTriangle className="w-4 h-4" /> },
           { to: '/leaderboard', label: 'Leaderboard', icon: <Trophy className="w-4 h-4" /> },
         ];
       case 'admin':
