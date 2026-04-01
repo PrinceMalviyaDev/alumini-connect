@@ -124,9 +124,10 @@ export default function AlumniDashboard() {
 
   const handleAccept = async (request: MentorshipRequest, scheduledAt: string, sessionLink: string) => {
     try {
-      await api.put(`/requests/${request._id}/accept`, { scheduledAt, sessionLink });
+      const res = await api.put(`/requests/${request._id}/accept`, { scheduledAt, sessionLink });
+      const accepted = res.data.data.request;
       setRequests((prev) => prev.map((r) => r._id === request._id
-        ? { ...r, status: 'accepted', scheduledAt, sessionLink }
+        ? { ...r, status: 'accepted', scheduledAt: accepted.scheduledAt, sessionLink: accepted.sessionLink }
         : r
       ));
       toast.success('Request accepted!');

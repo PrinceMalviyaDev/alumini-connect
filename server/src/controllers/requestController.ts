@@ -143,7 +143,7 @@ export async function getAlumniRequests(req: Request, res: Response): Promise<vo
 export async function acceptRequest(req: Request, res: Response): Promise<void> {
   try {
     const { id } = req.params;
-    const { scheduledAt: scheduledAtStr } = req.body;
+    const { scheduledAt: scheduledAtStr, sessionLink: providedLink } = req.body;
 
     const mentorshipRequest = await MentorshipRequest.findById(id);
     if (!mentorshipRequest) {
@@ -165,7 +165,7 @@ export async function acceptRequest(req: Request, res: Response): Promise<void> 
       ? new Date(scheduledAtStr)
       : mentorshipRequest.proposedSlots[0];
 
-    const sessionLink = `https://meet.jit.si/alumniconnect-${id}`;
+    const sessionLink = providedLink?.trim() || `https://meet.jit.si/alumniconnect-${id}`;
 
     mentorshipRequest.status = 'accepted';
     mentorshipRequest.scheduledAt = scheduledAt;
