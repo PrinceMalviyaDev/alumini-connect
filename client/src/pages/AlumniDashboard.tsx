@@ -12,6 +12,7 @@ import StarRating from '../components/StarRating';
 import api from '../lib/axios';
 import { useAuthStore } from '../store/authStore';
 import Avatar from '../components/Avatar';
+import SessionCalendar from '../components/SessionCalendar';
 
 interface AcceptModalProps {
   request: MentorshipRequest;
@@ -229,6 +230,14 @@ export default function AlumniDashboard() {
             <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{stat.label}</p>
           </div>
         ))}
+      </div>
+
+      {/* Session Calendar */}
+      <div className="mb-8">
+        <SessionCalendar
+          sessions={requests.filter((r) => ['accepted', 'completed'].includes(r.status) && r.scheduledAt)}
+          userRole="alumni"
+        />
       </div>
 
       {/* Pending Requests Section */}

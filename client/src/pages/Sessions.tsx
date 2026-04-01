@@ -6,6 +6,7 @@ import SessionCard from '../components/SessionCard';
 import FeedbackModal from '../components/FeedbackModal';
 import { RequestCardSkeleton } from '../components/LoadingSkeleton';
 import { useAuthStore } from '../store/authStore';
+import SessionCalendar from '../components/SessionCalendar';
 import api from '../lib/axios';
 
 export default function Sessions() {
@@ -98,6 +99,16 @@ export default function Sessions() {
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Sessions</h1>
         <p className="text-gray-500 dark:text-gray-400 mt-1">Manage your mentorship sessions</p>
       </div>
+
+      {/* Calendar */}
+      {!loading && (
+        <div className="mb-6">
+          <SessionCalendar
+            sessions={requests.filter((r) => ['accepted', 'completed'].includes(r.status) && r.scheduledAt)}
+            userRole={user?.role || 'student'}
+          />
+        </div>
+      )}
 
       {/* Tabs */}
       <div className="flex gap-1 bg-gray-100 dark:bg-gray-800 p-1 rounded-xl mb-6 w-fit">
