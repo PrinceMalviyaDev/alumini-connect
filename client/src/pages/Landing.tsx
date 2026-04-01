@@ -135,12 +135,45 @@ export default function Landing() {
 
       {/* ─── Hero ─── */}
       <section className="relative pt-28 pb-24 sm:pt-36 sm:pb-32 px-4 overflow-hidden">
-        {/* Background gradient mesh */}
+        {/* Animated background */}
         <div className="absolute inset-0 -z-10">
-          <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-primary-400/20 rounded-full blur-[120px]" />
-          <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-violet-400/15 rounded-full blur-[120px]" />
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[400px] bg-cyan-400/10 rounded-full blur-[100px]" />
+          {/* Animated gradient orbs */}
+          <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-primary-400/15 rounded-full blur-[120px] animate-[hero-drift-1_18s_ease-in-out_infinite]" />
+          <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-violet-400/12 rounded-full blur-[120px] animate-[hero-drift-2_22s_ease-in-out_infinite]" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[400px] bg-cyan-400/8 rounded-full blur-[100px] animate-[hero-drift-3_15s_ease-in-out_infinite]" />
+          <div className="absolute top-1/4 right-1/6 w-[300px] h-[300px] bg-indigo-400/10 rounded-full blur-[80px] animate-[hero-drift-4_20s_ease-in-out_infinite]" />
+
+          {/* Subtle dot grid */}
+          <div
+            className="absolute inset-0 opacity-[0.03] dark:opacity-[0.05]"
+            style={{
+              backgroundImage: 'radial-gradient(circle, currentColor 1px, transparent 1px)',
+              backgroundSize: '32px 32px',
+            }}
+          />
         </div>
+
+        {/* Inline keyframes */}
+        <style>{`
+          @keyframes hero-drift-1 {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(40px, -30px) scale(1.05); }
+            66% { transform: translate(-20px, 20px) scale(0.95); }
+          }
+          @keyframes hero-drift-2 {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(-30px, 25px) scale(1.08); }
+            66% { transform: translate(35px, -15px) scale(0.92); }
+          }
+          @keyframes hero-drift-3 {
+            0%, 100% { transform: translate(-50%, -50%) scale(1); }
+            50% { transform: translate(-50%, -50%) scale(1.1); }
+          }
+          @keyframes hero-drift-4 {
+            0%, 100% { transform: translate(0, 0); }
+            50% { transform: translate(-25px, 30px); }
+          }
+        `}</style>
 
         <div className="relative max-w-5xl mx-auto text-center">
           <div className="inline-flex items-center gap-2 bg-primary-50 dark:bg-primary-900/30 border border-primary-200 dark:border-primary-800 rounded-full px-4 py-1.5 text-sm font-medium text-primary-700 dark:text-primary-300 mb-8">
