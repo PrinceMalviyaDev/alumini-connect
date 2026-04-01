@@ -264,7 +264,7 @@ export default function RegretEngine() {
             const commentCount = regret.comments?.length || 0;
 
             return (
-              <div key={regret._id} className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
+              <div key={regret._id} className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6 overflow-hidden">
                 {/* Author */}
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex items-center gap-3">
@@ -287,8 +287,8 @@ export default function RegretEngine() {
                 </div>
 
                 {/* Content */}
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">{regret.title}</h3>
-                <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed whitespace-pre-line">{regret.description}</p>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2 break-words">{regret.title}</h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed whitespace-pre-line break-words">{regret.description}</p>
 
                 {/* Like / Dislike / Comments toggle */}
                 <div className="flex items-center gap-3 mt-4 pt-4 border-t border-gray-100 dark:border-gray-700">
