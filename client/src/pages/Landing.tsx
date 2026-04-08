@@ -18,6 +18,8 @@ import {
   Shield,
   Zap,
   ChevronRight,
+  Menu,
+  X,
 } from 'lucide-react';
 import { AlumniDirectoryItem } from '../types';
 import StarRating from '../components/StarRating';
@@ -103,6 +105,7 @@ const stats = [
 
 export default function Landing() {
   const [topMentors, setTopMentors] = useState<AlumniDirectoryItem[]>([]);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     api.get('/leaderboard', { params: { limit: 4 } }).then((res) => {
@@ -122,7 +125,8 @@ export default function Landing() {
             </div>
             <span>AlumniConnect</span>
           </div>
-          <div className="flex items-center gap-3">
+          {/* Desktop nav */}
+          <div className="hidden sm:flex items-center gap-3">
             <Link to="/login" className="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors px-3 py-2">
               Sign In
             </Link>
@@ -130,7 +134,34 @@ export default function Landing() {
               Get Started
             </Link>
           </div>
+          {/* Mobile hamburger */}
+          <button
+            onClick={() => setMobileMenuOpen((o) => !o)}
+            className="sm:hidden p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+            aria-label="Toggle menu"
+          >
+            {mobileMenuOpen ? <X className="w-5 h-5 text-gray-700 dark:text-gray-200" /> : <Menu className="w-5 h-5 text-gray-700 dark:text-gray-200" />}
+          </button>
         </div>
+        {/* Mobile dropdown */}
+        {mobileMenuOpen && (
+          <div className="sm:hidden border-t border-gray-100 dark:border-gray-800 bg-white/95 dark:bg-gray-950/95 backdrop-blur-xl px-4 py-3 flex flex-col gap-2">
+            <Link
+              to="/login"
+              onClick={() => setMobileMenuOpen(false)}
+              className="text-sm font-medium text-gray-700 dark:text-gray-200 hover:text-gray-900 dark:hover:text-white px-3 py-2.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+            >
+              Sign In
+            </Link>
+            <Link
+              to="/register"
+              onClick={() => setMobileMenuOpen(false)}
+              className="text-sm font-semibold text-center bg-gray-900 dark:bg-white text-white dark:text-gray-900 hover:bg-gray-800 dark:hover:bg-gray-100 px-5 py-2.5 rounded-xl transition-colors"
+            >
+              Get Started
+            </Link>
+          </div>
+        )}
       </header>
 
       {/* ─── Hero ─── */}
